@@ -4,7 +4,7 @@
  * Сделано задание на звездочку
  * Реализованы методы several и through
  */
-const isStar = false;
+const isStar = true;
 
 /**
  * Возвращает новый emitter
@@ -80,9 +80,21 @@ function getEmitter() {
          * @param {Object} context
          * @param {Function} handler
          * @param {Number} times – сколько раз получить уведомление
+         * @returns {Object}
          */
         several: function (event, context, handler, times) {
-            console.info(event, context, handler, times);
+            const handlerBind = (() => {
+                let count = 0;
+
+                return () => {
+                    if (times <= 0 || count < times) {
+                        handler.call(context);
+                        count++;
+                    }
+                };
+            })();
+
+            return this.on(event, context, handlerBind);
         },
 
         /**
@@ -92,9 +104,20 @@ function getEmitter() {
          * @param {Object} context
          * @param {Function} handler
          * @param {Number} frequency – как часто уведомлять
+         * @returns {Object}
          */
         through: function (event, context, handler, frequency) {
-            console.info(event, context, handler, frequency);
+            const handlerBind = (() => {
+                let count = 0;
+
+                return () => {
+                    if (frequency <= 0 || count++ % frequency === 0) {
+                        handler.call(context);
+                    }
+                };
+            })();
+
+            return this.on(event, context, handlerBind);
         }
     };
 }
